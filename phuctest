@@ -1,0 +1,43 @@
+import requests
+import base64
+
+# Thông tin repo
+GITHUB_TOKEN = "YOUR_PERSONAL_ACCESS_TOKEN"  # Thay bằng token của bạn
+OWNER = "your-username"                      # Username hoặc org
+REPO = "your-repo"                           # Tên repository
+BRANCH = "main"                              # Branch muốn commit
+FILE_PATH = "example.txt"                     # File trên máy của bạn
+REMOTE_PATH = "folder_on_github/example.txt" # Đường dẫn file trên GitHub
+COMMIT_MESSAGE = "Add example.txt via API"
+
+# Đọc nội dung file
+with open(FILE_PATH, "rb") as f:
+    content = f.read()
+
+# Encode nội dung thành base64
+encoded_content = base64.b64encode(content).decode()
+
+# Endpoint GitHub API
+url = f"https://api.github.com/repos/{OWNER}/{REPO}/contents/{REMOTE_PATH}"
+
+# Payload gửi lên GitHub
+data = {
+    "message": COMMIT_MESSAGE,
+    "content": encoded_content,
+    "branch": BRANCH
+}
+
+# Header với token
+headers = {
+    "Authorization": f"token {GITHUB_TOKEN}"
+}
+
+# Gửi request PUT để tạo file
+response = requests.put(url, json=data, headers=headers)
+
+if response.status_code in [200, 201]:
+    print("✅ Upload thành công!")
+    print(response.json())
+else:
+    print("❌ Upload thất bại!")
+    print(response.status_code, response.text)
