@@ -1,0 +1,43 @@
+docker-compose.yaml
+
+services:
+  anythingllm:
+    image: mintplexlabs/anythingllm
+    container_name: anythingllm
+    restart: always
+    ports:
+      - "3001:3001"
+    volumes:
+      # We will create and use a new storage volume to avoid password issues
+      - anythingllm-offline_storage:/app/server/storage
+      - anythingllm-offline_hotdir:/app/server/hotdir
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - STORAGE_DIR=/app/server/storage
+    depends_on:
+      - ollama
+
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      # This is the critical change: Use the volume where your models are!
+      - ubuntu_ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          cpus: '3.0'
+    environment:
+      - OLLAMA_NUM_CPU=3
+
+# Define the volumes we are using
+volumes:
+  anythingllm-offline_storage:
+  anythingllm-offline_hotdir:
+  # This tells Docker that 'ubuntu_ollama_data' is an existing volume
+  # and it should NOT create a new one.
+  ubuntu_ollama_data:
+    external: true
